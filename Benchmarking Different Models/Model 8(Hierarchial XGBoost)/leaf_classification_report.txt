@@ -1,0 +1,6 @@
+              precision  recall  f1-score    support
+broadleaf        0.9412  0.9249    0.9330  4168.0000
+needleleaf       0.9102  0.9294    0.9197  3414.0000
+accuracy         0.9269  0.9269    0.9269     0.9269
+macro avg        0.9257  0.9272    0.9263  7582.0000
+weighted avg     0.9272  0.9269    0.9270  7582.0000

@@ -1,0 +1,252 @@
+// Import data 
+var points = ee.FeatureCollection("projects/ee-saravindhsubramanian/assets/TreeSatAI"); // -> Use the table uploaded by you
+var unique_species = points.aggregate_array('l3_species').distinct();
+
+// Region of Interest (ROI) of Germany
+var Boundary = ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017");
+var boundary = Boundary.select("country_co");
+var roi_germany = boundary.filter(ee.Filter.eq('country_co','GM'));
+
+// Sentinel-2 spectral bands
+var commonBands = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12', 
+                  'MSK_CLDPRB'];
+
+// Import DEM data
+var dem = ee.Image('USGS/SRTMGL1_003').clip(roi_germany).rename('DEM');
+
+/***Calculate Vegetation Index***/   // -> Added more indices
+var addNDVI = function(image) {
+  var ndvi = image.normalizedDifference(['B8', 'B4']).rename('NDVI');
+  return image.addBands(ndvi);
+};
+
+var addEVI = function(image) {
+  var evi = image.expression(
+    '2.5 * ((NIR - red) / (NIR + 6 * red - 7.5 * blue + 1))',
+    {
+      'red': image.select('B4'),
+      'NIR': image.select('B8'),
+      'blue': image.select('B2')
+    }
+  ).rename('EVI');
+  return image.addBands(evi);
+};
+
+var addEVI2 = function(image) {
+  var evi2 = image.expression(
+    '2.5 * ((NIR - red) / (NIR + 2.4 * red + 1))',
+    {
+      'red': image.select('B4'),
+      'NIR': image.select('B8')
+    }
+  ).rename('EVI2');
+  return image.addBands(evi2);
+};
+
+var addSAVI = function(image) {
+  var savi = image.expression(
+    '((NIR - red) / (NIR + red + L)) * (1 + L)',
+    {
+      'red': image.select('B4'),
+      'NIR': image.select('B8'),
+      'L': 0.5
+    }
+  ).rename('SAVI');
+  return image.addBands(savi);
+};
+
+var addNDWI = function(image) {
+  var ndwi = image.normalizedDifference(['B8', 'B11']).rename('NDWI');
+  return image.addBands(ndwi);
+};
+
+var addGNDVI = function(image) {
+  var gndvi = image.normalizedDifference(['B8', 'B3']).rename('GNDVI');
+  return image.addBands(gndvi);
+};
+
+var addARVI = function(image) {
+  var arvi = image.expression(
+    '(NIR - (2 * red - blue)) / (NIR + (2 * red - blue))',
+    {
+      'red': image.select('B4'),
+      'NIR': image.select('B8'),
+      'blue': image.select('B2')
+    }
+  ).rename('ARVI');
+  return image.addBands(arvi);
+};
+
+var addMSAVI = function(image) {
+  var msavi = image.expression(
+    '(2 * NIR + 1 - sqrt(pow((2 * NIR + 1), 2) - 8 * (NIR - red))) / 2',
+    {
+      'red': image.select('B4'),
+      'NIR': image.select('B8')
+    }
+  ).rename('MSAVI');
+  return image.addBands(msavi);
+};
+
+var addNBR = function(image) {
+  var nbr = image.normalizedDifference(['B8', 'B12']).rename('NBR');
+  return image.addBands(nbr);
+};
+
+var addRENDVI = function(image) {
+  var rendvi = image.normalizedDifference(['B8', 'B5']).rename('RENDVI');
+  return image.addBands(rendvi);
+};
+
+var addDEM = function(image) {
+  return image.addBands(dem);
+};
+
+// Remove clouds
+function maskS2clouds(image) {
+  // Use the cloud probability band (MSK_CLDPRB) to mask clouds
+  var cloudProb = image.select('MSK_CLDPRB');
+  
+  // Mask cloudy pixels where cloud probability is greater than a threshold (e.g., 20%)
+  var mask = cloudProb.lt(20);
+  
+  return image.updateMask(mask).divide(10000);
+}
+
+// Function to access Sentinel-2 data
+function processMonthlyData(startDate, endDate, cloudThreshold) {
+    return ee.ImageCollection('COPERNICUS/S2_SR')
+        .filterBounds(roi_germany)                   // ROI
+        .filterDate(startDate, endDate)              // date range 
+        .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', cloudThreshold)) // filter clouds
+        .map(function(image) {
+            return image.clip(roi_germany)
+                        .select(commonBands);        // band selection
+        })
+        .map(maskS2clouds)                           // mask clouds
+        .map(addNDVI)                                // add NDVI
+        .map(addEVI)                                 // add EVI
+        .map(addEVI2)                                // add EVI2
+        .map(addSAVI)                                // add SAVI
+        .map(addNDWI)                                // add NDWI
+        .map(addGNDVI)                               // add GNDVI
+        .map(addARVI)                                // add ARVI
+        .map(addMSAVI)                               // add MSAVI
+        .map(addNBR)                                 // add NBR
+        .map(addRENDVI)                              // add RENDVI
+        .map(addDEM)                                 // add DEM
+        .median();                                   // calculate median value for monthly composite
+}
+
+/***Process monthly data***/
+var s2_Mar = processMonthlyData('2022-03-01', '2022-03-31', 30);
+var s2_Apr = processMonthlyData('2022-04-01', '2022-04-30', 30);
+var s2_May = processMonthlyData('2022-05-01', '2022-05-31', 30);
+var s2_Jun = processMonthlyData('2022-06-01', '2022-06-30', 30);
+var s2_Jul = processMonthlyData('2022-07-01', '2022-07-31', 30);
+var s2_Aug = processMonthlyData('2022-08-01', '2022-08-31', 30);
+var s2_Sep = processMonthlyData('2022-09-01', '2022-09-30', 30);
+var s2_Oct = processMonthlyData('2022-10-01', '2022-10-31', 30);
+
+var s2 = s2_Mar.addBands(s2_Apr).addBands(s2_May).addBands(s2_Jun).addBands(s2_Jul).addBands(s2_Aug).addBands(s2_Sep).addBands(s2_Oct);
+
+var Bands = [
+  // March (no suffix)
+  'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12', 
+  'NDVI', 'EVI', 'EVI2', 'SAVI', 'NDWI', 'GNDVI', 'ARVI', 'MSAVI', 'NBR', 'RENDVI', 'DEM',
+  
+  // April (_1)
+  'B1_1', 'B2_1', 'B3_1', 'B4_1', 'B5_1', 'B6_1', 'B7_1', 'B8_1', 'B8A_1', 'B9_1', 'B11_1', 'B12_1',
+  'NDVI_1', 'EVI_1', 'EVI2_1', 'SAVI_1', 'NDWI_1', 'GNDVI_1', 'ARVI_1', 'MSAVI_1', 'NBR_1', 'RENDVI_1', 'DEM_1',
+  
+  // May (_2)
+  'B1_2', 'B2_2', 'B3_2', 'B4_2', 'B5_2', 'B6_2', 'B7_2', 'B8_2', 'B8A_2', 'B9_2', 'B11_2', 'B12_2',
+  'NDVI_2', 'EVI_2', 'EVI2_2', 'SAVI_2', 'NDWI_2', 'GNDVI_2', 'ARVI_2', 'MSAVI_2', 'NBR_2', 'RENDVI_2', 'DEM_2',
+  
+  // June (_3)
+  'B1_3', 'B2_3', 'B3_3', 'B4_3', 'B5_3', 'B6_3', 'B7_3', 'B8_3', 'B8A_3', 'B9_3', 'B11_3', 'B12_3',
+  'NDVI_3', 'EVI_3', 'EVI2_3', 'SAVI_3', 'NDWI_3', 'GNDVI_3', 'ARVI_3', 'MSAVI_3', 'NBR_3', 'RENDVI_3', 'DEM_3',
+  
+  // July (_4)
+  'B1_4', 'B2_4', 'B3_4', 'B4_4', 'B5_4', 'B6_4', 'B7_4', 'B8_4', 'B8A_4', 'B9_4', 'B11_4', 'B12_4',
+  'NDVI_4', 'EVI_4', 'EVI2_4', 'SAVI_4', 'NDWI_4', 'GNDVI_4', 'ARVI_4', 'MSAVI_4', 'NBR_4', 'RENDVI_4', 'DEM_4',
+  
+  // August (_5)
+  'B1_5', 'B2_5', 'B3_5', 'B4_5', 'B5_5', 'B6_5', 'B7_5', 'B8_5', 'B8A_5', 'B9_5', 'B11_5', 'B12_5',
+  'NDVI_5', 'EVI_5', 'EVI2_5', 'SAVI_5', 'NDWI_5', 'GNDVI_5', 'ARVI_5', 'MSAVI_5', 'NBR_5', 'RENDVI_5', 'DEM_5',
+  
+  // September (_6)
+  'B1_6', 'B2_6', 'B3_6', 'B4_6', 'B5_6', 'B6_6', 'B7_6', 'B8_6', 'B8A_6', 'B9_6', 'B11_6', 'B12_6',
+  'NDVI_6', 'EVI_6', 'EVI2_6', 'SAVI_6', 'NDWI_6', 'GNDVI_6', 'ARVI_6', 'MSAVI_6', 'NBR_6', 'RENDVI_6', 'DEM_6',
+  
+  // October (_7)
+  'B1_7', 'B2_7', 'B3_7', 'B4_7', 'B5_7', 'B6_7', 'B7_7', 'B8_7', 'B8A_7', 'B9_7', 'B11_7', 'B12_7',
+  'NDVI_7', 'EVI_7', 'EVI2_7', 'SAVI_7', 'NDWI_7', 'GNDVI_7', 'ARVI_7', 'MSAVI_7', 'NBR_7', 'RENDVI_7', 'DEM_7'
+];
+
+var s2_select = s2.select(Bands)
+
+var kernel = ee.Kernel.rectangle(2, 2);  // -> Exploration of various patch size is encouraged
+var neighborImg = s2_select.neighborhoodToArray(kernel);
+
+// Download data according to Hierarchical Labels
+// Hierarchical Labels
+var treeHierarchy = {
+  'broadleaf': {
+    'beech': ['european beech'],
+    'oak': ['sessile oak', 'english oak', 'red oak'],
+    'long-lived deciduous': ['sycamore maple', 'european ash', 'linden', 'cherry'],
+    'short-lived deciduous': ['alder', 'poplar', 'birch']
+  },
+  'needleleaf': {
+    'fir': ['silver fir'],
+    'larch': ['european larch', 'japanese larch'],
+    'spruce': ['norway spruce'],
+    'pine': ['scots pine', 'black pine', 'weymouth pine'],
+    'douglas fir': ['douglas fir']
+  }
+};
+
+// Function to get hierarchical classification of species
+function getSpeciesHierarchy(speciesName) {
+  var result = {};
+  Object.keys(treeHierarchy).forEach(function (level1) {
+    var level2Dict = treeHierarchy[level1];
+    Object.keys(level2Dict).forEach(function (level2) {
+      if (level2Dict[level2].indexOf(speciesName) !== -1) {
+        result = { level1: level1, level2: level2 };
+      }
+    });
+  });
+  return result;
+}
+
+// Select only one species: European beech
+var species = 'scots pine';
+var speciesCollection = points.filterMetadata('l3_species', 'equals', species);
+var safeSpeciesName = species.replace(/ /g, '');
+
+// Get species hierarchy
+var hierarchyInfo = getSpeciesHierarchy(species);
+var level1 = hierarchyInfo.level1;
+var level2 = hierarchyInfo.level2;
+
+// Define folder path based on hierarchy
+var folderPath = level1 + '_' + level2 + '_' + safeSpeciesName;
+
+// Reduce region over species collection to extract remote sensing data
+var samples = s2_select.reduceRegions({
+  collection: speciesCollection,
+  reducer: ee.Reducer.first(),
+  scale: 10,
+  tileScale: 4
+});
+
+// Export the table to Google Drive
+Export.table.toDrive({
+  collection: samples,
+  description: safeSpeciesName,
+  folder: 'TreeSatAI',
+  fileNamePrefix: folderPath,
+  fileFormat: 'GeoJSON'
+});

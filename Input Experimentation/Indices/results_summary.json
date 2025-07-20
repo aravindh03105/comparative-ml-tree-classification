@@ -1,0 +1,29 @@
+{
+    "description": "Spectral + Selected Indices + DEM",
+    "test_accuracy": 0.7300177812576294,
+    "test_loss": 0.8197771310806274,
+    "precision": 0.6698408087825287,
+    "recall": 0.5821382448270455,
+    "f1_score": 0.5893412652629478,
+    "per_class_accuracy": {
+        "alder": 0.8042553191489362,
+        "birch": 0.5081967213114754,
+        "black pine": 0.0851063829787234,
+        "cherry": 0.0,
+        "douglas fir": 0.8353413654618473,
+        "english oak": 0.8167202572347267,
+        "european ash": 0.6171171171171171,
+        "european beech": 0.890625,
+        "european larch": 0.6752136752136753,
+        "japanese larch": 0.5515151515151515,
+        "linden": 0.10526315789473684,
+        "norway spruce": 0.8583690987124464,
+        "poplar": 0.5227272727272727,
+        "red oak": 0.5209580838323353,
+        "scots pine": 0.8435054773082942,
+        "sessile oak": 0.9108910891089109,
+        "silver fir": 0.8,
+        "sycamore maple": 0.36633663366336633,
+        "weymouth pine": 0.3484848484848485
+    }
+}

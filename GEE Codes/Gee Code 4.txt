@@ -1,0 +1,237 @@
+// User-defined parameter: Select time range
+var timeRange = 'july-2022'; // Options: 'mar-oct-2022', 'all-2022', 'july-2022'
+var maxPoints = null; // Set to a number (e.g., 1000) to limit points per species, or null for all points
+
+// Import data
+var points = ee.FeatureCollection("projects/ee-saravindhsubramanian/assets/TreeSatAI");
+var unique_species = points.aggregate_array('l3_species').distinct();
+
+// Region of Interest (ROI) of Germany
+var Boundary = ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017");
+var boundary = Boundary.select("country_co");
+var roi_germany = boundary.filter(ee.Filter.eq('country_co', 'GM'));
+
+// Sentinel-2 spectral bands (all bands)
+var commonBands = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12', 'MSK_CLDPRB'];
+
+// Import DEM data
+var dem = ee.Image('USGS/SRTMGL1_003').clip(roi_germany).rename('DEM');
+
+// Calculate Vegetation Indices
+var addNDVI = function(image) {
+  var ndvi = image.normalizedDifference(['B8', 'B4']).rename('NDVI');
+  return image.addBands(ndvi);
+};
+
+var addEVI = function(image) {
+  var evi = image.expression(
+    '2.5 * ((NIR - red) / (NIR + 6 * red - 7.5 * blue + 1))',
+    {
+      'red': image.select('B4'),
+      'NIR': image.select('B8'),
+      'blue': image.select('B2')
+    }
+  ).rename('EVI');
+  return image.addBands(evi);
+};
+
+var addSAVI = function(image) {
+  var savi = image.expression(
+    '((NIR - red) / (NIR + red + L)) * (1 + L)',
+    {
+      'red': image.select('B4'),
+      'NIR': image.select('B8'),
+      'L': 0.5
+    }
+  ).rename('SAVI');
+  return image.addBands(savi);
+};
+
+var addNDWI = function(image) {
+  var ndwi = image.normalizedDifference(['B8', 'B11']).rename('NDWI');
+  return image.addBands(ndwi);
+};
+
+var addDEM = function(image) {
+  return image.addBands(dem);
+};
+
+// Remove clouds
+function maskS2clouds(image) {
+  var cloudProb = image.select('MSK_CLDPRB');
+  var mask = cloudProb.lt(20);
+  return image.updateMask(mask).divide(10000);
+}
+
+// Function to access Sentinel-2 data
+function processMonthlyData(startDate, endDate, cloudThreshold) {
+  return ee.ImageCollection('COPERNICUS/S2_SR')
+    .filterBounds(roi_germany)
+    .filterDate(startDate, endDate)
+    .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', cloudThreshold))
+    .map(function(image) {
+      return image.clip(roi_germany)
+                 .select(commonBands);
+    })
+    .map(maskS2clouds)
+    .map(addNDVI)
+    .map(addEVI)
+    .map(addSAVI)
+    .map(addNDWI)
+    .map(addDEM)
+    .median();
+}
+
+// Define time ranges
+var timeRanges = {
+  'mar-oct-2022': [
+    {start: '2022-03-01', end: '2022-03-31', suffix: ''},
+    {start: '2022-04-01', end: '2022-04-30', suffix: '_1'},
+    {start: '2022-05-01', end: '2022-05-31', suffix: '_2'},
+    {start: '2022-06-01', end: '2022-06-30', suffix: '_3'},
+    {start: '2022-07-01', end: '2022-07-31', suffix: '_4'},
+    {start: '2022-08-01', end: '2022-08-31', suffix: '_5'},
+    {start: '2022-09-01', end: '2022-09-30', suffix: '_6'},
+    {start: '2022-10-01', end: '2022-10-31', suffix: '_7'}
+  ],
+  'all-2022': [
+    {start: '2022-01-01', end: '2022-01-31', suffix: ''},
+    {start: '2022-02-01', end: '2022-02-28', suffix: '_1'},
+    {start: '2022-03-01', end: '2022-03-31', suffix: '_2'},
+    {start: '2022-04-01', end: '2022-04-30', suffix: '_3'},
+    {start: '2022-05-01', end: '2022-05-31', suffix: '_4'},
+    {start: '2022-06-01', end: '2022-06-30', suffix: '_5'},
+    {start: '2022-07-01', end: '2022-07-31', suffix: '_6'},
+    {start: '2022-08-01', end: '2022-08-31', suffix: '_7'},
+    {start: '2022-09-01', end: '2022-09-30', suffix: '_8'},
+    {start: '2022-10-01', end: '2022-10-31', suffix: '_9'},
+    {start: '2022-11-01', end: '2022-11-30', suffix: '_10'},
+    {start: '2022-12-01', end: '2022-12-31', suffix: '_11'}
+  ],
+  'july-2022': [
+    {start: '2022-07-01', end: '2022-07-31', suffix: ''}
+  ],
+  'august-2022': [
+    {start: '2022-08-01', end: '2022-08-31', suffix: ''}
+  ]
+};
+
+// Process data for selected time range
+var selectedRange = timeRanges[timeRange];
+if (!selectedRange) {
+  print('Error: Invalid time range. Choose "mar-oct-2022", "all-2022", or "july-2022".');
+} else {
+  // Process monthly data
+  var s2 = null;
+  selectedRange.forEach(function(month, index) {
+    var monthlyData = processMonthlyData(month.start, month.end, 20);
+    if (index === 0) {
+      s2 = monthlyData;
+    } else {
+      s2 = s2.addBands(monthlyData);
+    }
+  });
+
+  // Define bands for the selected time range
+  var Bands = [];
+  selectedRange.forEach(function(month) {
+    var monthBands = [
+      'B1' + month.suffix, 'B2' + month.suffix, 'B3' + month.suffix,
+      'B4' + month.suffix, 'B5' + month.suffix, 'B6' + month.suffix,
+      'B7' + month.suffix, 'B8' + month.suffix, 'B8A' + month.suffix,
+      'B9' + month.suffix, 'B11' + month.suffix, 'B12' + month.suffix,
+      'NDVI' + month.suffix, 'EVI' + month.suffix, 'SAVI' + month.suffix,
+      'NDWI' + month.suffix, 'DEM' + month.suffix
+    ];
+    Bands = Bands.concat(monthBands);
+  });
+
+  var s2_select = s2.select(Bands);
+
+  // Define patch size (5x5 only)
+  var patchSize = {size: 5, kernel: ee.Kernel.rectangle(2, 2)};
+
+  // Hierarchical Labels
+  var treeHierarchy = {
+    'broadleaf': {
+      'beech': ['european beech'],
+      'oak': ['sessile oak', 'english oak', 'red oak'],
+      'long-lived deciduous': ['sycamore maple', 'european ash', 'linden', 'cherry'],
+      'short-lived deciduous': ['alder', 'poplar', 'birch']
+    },
+    'needleleaf': {
+      'fir': ['silver fir'],
+      'larch': ['european larch', 'japanese larch'],
+      'spruce': ['norway spruce'],
+      'pine': ['scots pine', 'black pine', 'weymouth pine'],
+      'douglas fir': ['douglas fir']
+    }
+  };
+
+  // Function to get hierarchical classification of species
+  function getSpeciesHierarchy(speciesName) {
+    var result = { level1: 'unknown', level2: 'unknown' };
+    Object.keys(treeHierarchy).forEach(function (level1) {
+      var level2Dict = treeHierarchy[level1];
+      if (level2Dict) {
+        Object.keys(level2Dict).forEach(function (level2) {
+          if (level2Dict[level2].indexOf(speciesName) !== -1) {
+            result = { level1: level1, level2: level2 };
+          }
+        });
+      }
+    });
+    return result;
+  }
+
+  // Iterate through each species
+  unique_species.evaluate(function (speciesList) {
+    if (!speciesList) {
+      print('Error: No species found in the dataset');
+      return;
+    }
+    speciesList.forEach(function (species) {
+      var speciesCollection = points.filterMetadata('l3_species', 'equals', species);
+      if (maxPoints) {
+        speciesCollection = speciesCollection.limit(maxPoints);
+      }
+
+      // Check number of points for the species
+      speciesCollection.size().evaluate(function(count) {
+        if (count === 0) {
+          print('Warning: No points found for species: ' + species);
+          return;
+        }
+
+        print('Processing ' + count + ' points for species: ' + species);
+
+        var safeSpeciesName = species.replace(/ /g, '');
+        var hierarchyInfo = getSpeciesHierarchy(species);
+        var level1 = hierarchyInfo.level1;
+        var level2 = hierarchyInfo.level2;
+
+        var kernel = patchSize.kernel;
+        var neighborImg = s2_select.neighborhoodToArray(kernel);
+        var samples = neighborImg.reduceRegions({
+          collection: speciesCollection,
+          reducer: ee.Reducer.first(),
+          scale: 10
+        });
+
+        // Define folder path with time range
+        var folderPath = level1 + '_' + level2 + '_' + species + timeRange;
+
+        // Export the table to Google Drive
+        Export.table.toDrive({
+          collection: samples,
+          description: safeSpeciesName + timeRange,
+          folder: 'TreeSatAI_'+ timeRange,
+          fileNamePrefix: folderPath,
+          fileFormat: 'GeoJSON'
+        });
+
+        print('Export task started for species: ' + species + ', Time Range: ' + timeRange);
+      });
+    });
+  });
+}

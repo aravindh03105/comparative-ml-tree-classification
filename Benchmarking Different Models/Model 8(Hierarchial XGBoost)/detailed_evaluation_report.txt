@@ -1,0 +1,60 @@
+======================================================================
+HIERARCHICAL TREE CLASSIFIER - DETAILED EVALUATION REPORT
+======================================================================
+
+OVERALL ACCURACY METRICS:
+  Leaf Type Accuracy:     0.9269
+  Genus Accuracy:         0.8010
+  Species Accuracy:       0.7319
+  Hierarchical Accuracy:  0.7319
+
+LEAF TYPE CLASSIFICATION REPORT:
+--------------------------------------------------
+              precision  recall  f1-score    support
+broadleaf        0.9412  0.9249    0.9330  4168.0000
+needleleaf       0.9102  0.9294    0.9197  3414.0000
+accuracy         0.9269  0.9269    0.9269     0.9269
+macro avg        0.9257  0.9272    0.9263  7582.0000
+weighted avg     0.9272  0.9269    0.9270  7582.0000
+
+GENUS CLASSIFICATION REPORT:
+--------------------------------------------------
+                       precision  recall  f1-score   support
+beech                     0.7715  0.7813    0.7764   951.000
+douglas fir               0.8524  0.8192    0.8355   437.000
+fir                       0.7263  0.8025    0.7625   162.000
+larch                     0.8394  0.7586    0.7969   551.000
+long-lived deciduous      0.7704  0.7638    0.7671   940.000
+oak                       0.8456  0.8622    0.8538  1277.000
+pine                      0.8691  0.8989    0.8838  1256.000
+short-lived deciduous     0.7130  0.6410    0.6751  1000.000
+spruce                    0.7661  0.8284    0.7960  1008.000
+accuracy                  0.8010  0.8010    0.8010     0.801
+macro avg                 0.7949  0.7951    0.7941  7582.000
+weighted avg              0.8002  0.8010    0.7999  7582.000
+
+SPECIES CLASSIFICATION REPORT:
+--------------------------------------------------
+                precision  recall  f1-score    support
+alder              0.6290  0.6364    0.6327   429.0000
+birch              0.5609  0.4474    0.4977   494.0000
+black pine         0.7179  0.6829    0.7000    82.0000
+cherry             0.6842  0.5306    0.5977    49.0000
+douglas fir        0.8524  0.8192    0.8355   437.0000
+english oak        0.6783  0.6940    0.6860   562.0000
+european ash       0.6099  0.5864    0.5979   440.0000
+european beech     0.7715  0.7813    0.7764   951.0000
+european larch     0.6714  0.6272    0.6485   228.0000
+japanese larch     0.8947  0.7895    0.8388   323.0000
+linden             0.7692  0.6250    0.6897    32.0000
+norway spruce      0.7661  0.8284    0.7960  1008.0000
+poplar             0.6056  0.5584    0.5811    77.0000
+red oak            0.7679  0.7705    0.7692   292.0000
+scots pine         0.8556  0.8905    0.8727  1078.0000
+sessile oak        0.6728  0.6903    0.6814   423.0000
+silver fir         0.7263  0.8025    0.7625   162.0000
+sycamore maple     0.5483  0.5823    0.5648   419.0000
+weymouth pine      0.7778  0.8021    0.7897    96.0000
+accuracy           0.7319  0.7319    0.7319     0.7319
+macro avg          0.7137  0.6918    0.7010  7582.0000
+weighted avg       0.7299  0.7319    0.7298  7582.0000

@@ -1,0 +1,129 @@
+{
+    "alder": {
+        "precision": 0.48010610079575594,
+        "recall": 0.430952380952381,
+        "f1-score": 0.45420326223337515,
+        "support": 420.0
+    },
+    "birch": {
+        "precision": 0.3395225464190981,
+        "recall": 0.3626062322946176,
+        "f1-score": 0.3506849315068493,
+        "support": 353.0
+    },
+    "black pine": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 9.0
+    },
+    "cherry": {
+        "precision": 0.10112359550561797,
+        "recall": 0.3157894736842105,
+        "f1-score": 0.15319148936170213,
+        "support": 57.0
+    },
+    "douglas fir": {
+        "precision": 0.7458333333333333,
+        "recall": 0.7075098814229249,
+        "f1-score": 0.7261663286004058,
+        "support": 506.0
+    },
+    "english oak": {
+        "precision": 0.4963609898107715,
+        "recall": 0.5286821705426357,
+        "f1-score": 0.5120120120120121,
+        "support": 645.0
+    },
+    "european ash": {
+        "precision": 0.30686695278969955,
+        "recall": 0.33101851851851855,
+        "f1-score": 0.3184855233853007,
+        "support": 432.0
+    },
+    "european beech": {
+        "precision": 0.844294003868472,
+        "recall": 0.5126247798003524,
+        "f1-score": 0.6379247351114359,
+        "support": 1703.0
+    },
+    "european larch": {
+        "precision": 0.23325635103926096,
+        "recall": 0.45701357466063347,
+        "f1-score": 0.308868501529052,
+        "support": 221.0
+    },
+    "japanese larch": {
+        "precision": 0.34,
+        "recall": 0.6296296296296297,
+        "f1-score": 0.4415584415584416,
+        "support": 135.0
+    },
+    "linden": {
+        "precision": 0.3,
+        "recall": 0.11764705882352941,
+        "f1-score": 0.16901408450704228,
+        "support": 51.0
+    },
+    "norway spruce": {
+        "precision": 0.7630161579892281,
+        "recall": 0.5697050938337802,
+        "f1-score": 0.6523407521105142,
+        "support": 746.0
+    },
+    "poplar": {
+        "precision": 0.37362637362637363,
+        "recall": 0.44155844155844154,
+        "f1-score": 0.4047619047619048,
+        "support": 77.0
+    },
+    "red oak": {
+        "precision": 0.6180758017492711,
+        "recall": 0.5564304461942258,
+        "f1-score": 0.5856353591160222,
+        "support": 381.0
+    },
+    "scots pine": {
+        "precision": 0.7998417721518988,
+        "recall": 0.8410981697171381,
+        "f1-score": 0.8199513381995134,
+        "support": 1202.0
+    },
+    "sessile oak": {
+        "precision": 0.3993115318416523,
+        "recall": 0.47058823529411764,
+        "f1-score": 0.43202979515828677,
+        "support": 493.0
+    },
+    "silver fir": {
+        "precision": 0.6237623762376238,
+        "recall": 0.7283236994219653,
+        "f1-score": 0.6719999999999999,
+        "support": 173.0
+    },
+    "sycamore maple": {
+        "precision": 0.40628385698808234,
+        "recall": 0.5172413793103449,
+        "f1-score": 0.4550970873786408,
+        "support": 725.0
+    },
+    "weymouth pine": {
+        "precision": 0.16129032258064516,
+        "recall": 0.22727272727272727,
+        "f1-score": 0.18867924528301885,
+        "support": 22.0
+    },
+    "accuracy": 0.5572985271225003,
+    "macro avg": {
+        "precision": 0.4385564245645676,
+        "recall": 0.46029957331221966,
+        "f1-score": 0.4359265679901852,
+        "support": 8351.0
+    },
+    "weighted avg": {
+        "precision": 0.6113884650884752,
+        "recall": 0.5572985271225003,
+        "f1-score": 0.5713451157307395,
+        "support": 8351.0
+    }
+}

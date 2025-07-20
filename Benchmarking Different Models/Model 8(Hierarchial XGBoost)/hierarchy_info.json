@@ -1,0 +1,84 @@
+{
+  "hierarchy_tree": {
+    "needleleaf": {
+      "douglas fir": [
+        "douglas fir"
+      ],
+      "larch": [
+        "japanese larch",
+        "european larch"
+      ],
+      "pine": [
+        "black pine",
+        "weymouth pine",
+        "scots pine"
+      ],
+      "spruce": [
+        "norway spruce"
+      ],
+      "fir": [
+        "silver fir"
+      ]
+    },
+    "broadleaf": {
+      "short-lived deciduous": [
+        "birch",
+        "poplar",
+        "alder"
+      ],
+      "beech": [
+        "european beech"
+      ],
+      "oak": [
+        "sessile oak",
+        "english oak",
+        "red oak"
+      ],
+      "long-lived deciduous": [
+        "linden",
+        "sycamore maple",
+        "european ash",
+        "cherry"
+      ]
+    }
+  },
+  "statistics": {
+    "total_samples": 37907,
+    "unique_leaf_types": 2,
+    "unique_genera": 9,
+    "unique_species": 19,
+    "hierarchy_issues": 0
+  },
+  "genus_mapping": {
+    "0": "beech",
+    "1": "douglas fir",
+    "2": "fir",
+    "3": "larch",
+    "4": "long-lived deciduous",
+    "5": "oak",
+    "6": "pine",
+    "7": "short-lived deciduous",
+    "8": "spruce"
+  },
+  "species_mapping": {
+    "0": "alder",
+    "1": "birch",
+    "2": "black pine",
+    "3": "cherry",
+    "4": "douglas fir",
+    "5": "english oak",
+    "6": "european beech",
+    "7": "european ash",
+    "8": "european larch",
+    "9": "japanese larch",
+    "10": "linden",
+    "11": "norway spruce",
+    "12": "poplar",
+    "13": "red oak",
+    "14": "scots pine",
+    "15": "sessile oak",
+    "16": "silver fir",
+    "17": "sycamore maple",
+    "18": "weymouth pine"
+  }
+}

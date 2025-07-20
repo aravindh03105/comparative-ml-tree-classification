@@ -1,0 +1,2 @@
+description,test_accuracy,test_loss,precision,recall,f1_score
+Spectral + Selected Indices + DEM,0.7300177812576294,0.8197771310806274,0.6698408087825287,0.5821382448270455,0.5893412652629478
